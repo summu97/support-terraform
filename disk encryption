@@ -1,0 +1,278 @@
+disk_encryption_set/
+│── main.tf
+│── variables.tf
+│── versions.tf
+│── outputs.tf
+│── backend.tf
+└── env/
+    ├── dev.tfvars
+    └── prod.tfvars
+
+
+main.tf
+---
+provider "azurerm" {
+  features {}
+}
+
+locals {
+  using_kv          = var.encryption_type == "AzureKeyVault"
+  using_mhsm        = var.encryption_type == "ManagedHSM"
+  using_key_uri     = var.encryption_type == "KeyUri"
+  using_platform    = var.encryption_type == "PlatformManaged"
+}
+
+# Disk Encryption Set Configuration
+resource "azurerm_disk_encryption_set" "this" {
+  name                = var.des_name
+  resource_group_name = var.resource_group_name
+  location            = var.location
+
+  # CONDITIONAL KEY SOURCE
+  key_source = local.using_platform ? "Microsoft.Storage" : "Microsoft.KeyVault"
+
+  # USER-ASSIGNED IDENTITY ALWAYS NEEDED EXCEPT PMK
+  identity {
+    type = local.using_platform ? "SystemAssigned" : "UserAssigned"
+    identity_ids = local.using_platform ? null : var.user_assigned_identity_ids
+  }
+
+  # --------------------------
+  # CUSTOMER MANAGED KEY (CMK)
+  # --------------------------
+
+  # Azure Key Vault Type
+  key_vault_key_id = local.using_kv ? (
+    "${var.keyvault_uri}/keys/${var.keyvault_key_name}/${var.keyvault_key_version}"
+  ) : null
+
+  # Managed HSM Type
+  hsm_key_source = local.using_mhsm ? "Microsoft.KeyVault" : null
+
+  hsm_key_id = local.using_mhsm ? (
+    "${var.managed_hsm_uri}/keys/${var.mhsm_key_name}/${var.mhsm_key_version}"
+  ) : null
+
+  # Direct Key URI
+  key_uri = local.using_key_uri ? var.key_uri : null
+
+  # Auto Key Rotation (KV only)
+  auto_key_rotation_enabled = local.using_kv ? var.auto_key_rotation : false
+
+  tags = var.tags
+}
+
+
+variables.tf
+---
+variable "subscription_id" {
+  description = "Azure subscription"
+  type        = string
+}
+
+variable "resource_group_name" {
+  description = "Resource group name"
+  type        = string
+}
+
+variable "location" {
+  description = "Azure region"
+  type        = string
+}
+
+variable "des_name" {
+  description = "Disk Encryption Set name"
+  type        = string
+}
+
+# =============================
+# ENCRYPTION TYPE OPTIONS
+# =============================
+# - PlatformManaged   → Uses Microsoft-managed encryption
+# - AzureKeyVault     → Uses Azure Key Vault (CMK)
+# - ManagedHSM        → Uses Managed HSM (CMK)
+# - KeyUri            → Uses a custom URI key (manual)
+# =============================
+variable "encryption_type" {
+  description = "Type of encryption to configure"
+  type        = string
+}
+
+# ---------------------------
+# USER ASSIGNED IDENTITY
+# ---------------------------
+variable "user_assigned_identity_ids" {
+  type        = list(string)
+  description = "User assigned managed identity IDs (required for CMK types)"
+  default     = []
+}
+
+# ---------------------------
+# Azure Key Vault Options
+# ---------------------------
+variable "keyvault_uri" {
+  type        = string
+  default     = null
+}
+
+variable "keyvault_key_name" {
+  type        = string
+  default     = null
+}
+
+variable "keyvault_key_version" {
+  type        = string
+  default     = null
+}
+
+variable "auto_key_rotation" {
+  type    = bool
+  default = false
+}
+
+# ---------------------------
+# Managed HSM Options
+# ---------------------------
+variable "managed_hsm_uri" {
+  type    = string
+  default = null
+}
+
+variable "mhsm_key_name" {
+  type    = string
+  default = null
+}
+
+variable "mhsm_key_version" {
+  type    = string
+  default = null
+}
+
+# ---------------------------
+# Direct Key URI Options
+# ---------------------------
+variable "key_uri" {
+  type    = string
+  default = null
+}
+
+variable "tags" {
+  type        = map(string)
+  default     = {}
+}
+
+
+versions.tf
+---
+terraform {
+  required_version = ">= 1.3.0"
+
+  required_providers {
+    azurerm = {
+      source  = "hashicorp/azurerm"
+      version = "~> 3.100"
+    }
+  }
+}
+
+
+outputs.tf
+---
+output "disk_encryption_set_id" {
+  value = azurerm_disk_encryption_set.this.id
+}
+
+output "disk_encryption_set_key_url" {
+  value = azurerm_disk_encryption_set.this.key_vault_key_id
+}
+
+
+backend.tf
+---
+terraform {
+  backend "azurerm" {
+    resource_group_name  = "tfstate-rg"
+    storage_account_name = "tfstatebackend001"
+    container_name       = "tfstate"
+    key                  = "disk-encryption-set/terraform.tfstate"
+  }
+}
+
+
+env/dev.tfvars
+---
+# ==========================================
+# ENCRYPTION TYPE OPTIONS
+# ==========================================
+# - PlatformManaged
+# - AzureKeyVault
+# - ManagedHSM
+# - KeyUri
+# ==========================================
+
+des_name            = "dev-disk-encryption-set"
+subscription_id     = "DEV_SUBSCRIPTION_ID"
+resource_group_name = "dev-rg"
+location            = "East US"
+
+# Basic: Platform managed
+encryption_type = "PlatformManaged"
+
+# Azure Key Vault
+keyvault_uri          = null
+keyvault_key_name     = null
+keyvault_key_version  = null
+auto_key_rotation     = false
+
+# Managed HSM
+managed_hsm_uri  = null
+mhsm_key_name    = null
+mhsm_key_version = null
+
+# Key URI
+key_uri = null
+
+# Identity not needed for PMK
+user_assigned_identity_ids = []
+
+tags = {
+  environment = "dev"
+}
+
+
+env/prod.tfvars
+---
+Example: Production using Azure Key Vault CMK
+---
+des_name            = "prod-disk-encryption-set"
+subscription_id     = "PROD_SUBSCRIPTION_ID"
+resource_group_name = "prod-rg"
+location            = "Central India"
+
+# Using Azure Key Vault CMK
+encryption_type = "AzureKeyVault"
+
+keyvault_uri         = "https://prod-vault.vault.azure.net"
+keyvault_key_name    = "prod-encryption-key"
+keyvault_key_version = "ab12345cd67890"
+
+auto_key_rotation = true
+
+user_assigned_identity_ids = [
+  "/subscriptions/.../resourceGroups/prod-rg/providers/Microsoft.ManagedIdentity/userAssignedIdentities/des-identity"
+]
+
+# Managed HSM (ignored)
+managed_hsm_uri  = null
+mhsm_key_name    = null
+mhsm_key_version = null
+
+# Key URI (ignored)
+key_uri = null
+
+tags = {
+  environment = "prod"
+  owner       = "cloudteam"
+}
+
+
