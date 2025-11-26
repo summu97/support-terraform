@@ -1,5 +1,12 @@
-**Folder Struture**:
+# Terraform Deployment Guide
 
+This repository uses Terraform with separate variable files for each environment.
+You can deploy to **Dev**, **QA**, or **Prod** by selecting the appropriate `.tfvars` file.
+
+If you want to deploy to a specific environment, **modify the variables inside the corresponding `.tfvars` file**, then run the Terraform commands shown below.
+---
+
+**Folder Structure**
 ```bash
 terraform/
 │
@@ -45,14 +52,7 @@ terraform/
 │
 └── README.md
 ```
-Here is a clean and professional **README.md** version for GitHub:
 
----
-
-# How to Run
-
-This project uses Terraform with environment-specific variable files.
-Follow the steps below to deploy to **Dev**, **QA**, or **Prod**.
 
 ---
 
@@ -83,6 +83,20 @@ terraform init
 terraform plan -var-file="env/prod.tfvars"
 terraform apply -var-file="env/prod.tfvars"
 ```
+
+---
+
+## 📌 Notes
+
+* Each environment has its own configuration under the `env/` folder.
+* Edit the respective `.tfvars` file (e.g., `dev.tfvars`, `qa.tfvars`, `prod.tfvars`) **before applying**, if you want to change:
+
+  * Region
+  * Resource names
+  * Sizes
+  * Tags
+  * Any environment-specific parameters
+* Always run `terraform plan` before `terraform apply` to review changes.
 
 ---
 
