@@ -1,0 +1,45 @@
+terraform/
+│
+├── autoscale_settings/
+│   ├── main.tf
+│   ├── variables.tf
+│   ├── versions.tf
+│   ├── outputs.tf
+│   ├── backend.tf
+│   └── env/
+│       ├── dev.tfvars
+│       └── prod.tfvars
+│
+├── cdn_profile/
+│   ├── main.tf
+│   ├── variables.tf
+│   ├── versions.tf
+│   ├── outputs.tf
+│   ├── backend.tf
+│   └── env/
+│       ├── dev.tfvars
+│       └── qa.tfvars
+│
+├── azure_redis_cache/
+│   ├── main.tf
+│   ├── variables.tf
+│   ├── versions.tf
+│   ├── outputs.tf
+│   ├── backend.tf
+│   └── env/
+│       ├── dev.tfvars
+│       └── prod.tfvars
+│
+├── disk_encryption_set/
+│   ├── main.tf
+│   ├── variables.tf
+│   ├── versions.tf
+│   ├── outputs.tf
+│   ├── backend.tf
+│   └── env/
+│       ├── dev.tfvars
+│       └── prod.tfvars
+│
+└── README.md
+=======
+
