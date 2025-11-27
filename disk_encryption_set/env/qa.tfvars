@@ -1,30 +1,17 @@
-des_name            = "qa-disk-encryption-set"
-subscription_id     = "QA_SUBSCRIPTION_ID"
-resource_group_name = "qa-rg"
-location            = "Central India"
-
-# Using Azure Key Vault CMK
-encryption_type = "AzureKeyVault"
-
-keyvault_uri         = "https://qa-vault.vault.azure.net"
-keyvault_key_name    = "qa-encryption-key"
-keyvault_key_version = "ab12345cd67890"
-
-auto_key_rotation = true
-
-user_assigned_identity_ids = [
-  "/subscriptions/.../resourceGroups/prod-rg/providers/Microsoft.ManagedIdentity/userAssignedIdentities/des-identity"
-]
-
-# Managed HSM (ignored)
-managed_hsm_uri  = null
-mhsm_key_name    = null
-mhsm_key_version = null
-
-# Key URI (ignored)
-key_uri = null
+# qa.tfvars - example values for QA
+key_vault_key_id      = "/subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/rg-kv-qa/providers/Microsoft.KeyVault/vaults/qa-kv/keys/qa-key"
+key_vault_resource_id = "/subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/rg-kv-qa/providers/Microsoft.KeyVault/vaults/qa-kv"
+location               = "eastus2"
+name                   = "des-qa-001"
+resource_group_name    = "rg-des-qa"
+auto_key_rotation_enabled = false
+enable_telemetry          = true
+encryption_type           = "EncryptionAtRestWithCustomerKey"
+federated_client_id      = null
+managed_hsm_key_id       = null
+lock                     = null
 
 tags = {
   environment = "qa"
-  owner       = "cloudteam"
+  project     = "disk-encryption"
 }
