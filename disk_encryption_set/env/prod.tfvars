@@ -1,32 +1,23 @@
-# Example: Production using Azure Key Vault CMK
-
-des_name            = "prod-disk-encryption-set"
-subscription_id     = "PROD_SUBSCRIPTION_ID"
-resource_group_name = "prod-rg"
-location            = "Central India"
-
-# Using Azure Key Vault CMK
-encryption_type = "AzureKeyVault"
-
-keyvault_uri         = "https://prod-vault.vault.azure.net"
-keyvault_key_name    = "prod-encryption-key"
-keyvault_key_version = "ab12345cd67890"
-
-auto_key_rotation = true
-
-user_assigned_identity_ids = [
-  "/subscriptions/.../resourceGroups/prod-rg/providers/Microsoft.ManagedIdentity/userAssignedIdentities/des-identity"
-]
-
-# Managed HSM (ignored)
-managed_hsm_uri  = null
-mhsm_key_name    = null
-mhsm_key_version = null
-
-# Key URI (ignored)
-key_uri = null
+# prod.tfvars - example values for Production
+# Replace the example IDs with your real production Key Vault / Managed HSM IDs
+key_vault_key_id      = "/subscriptions/<SUB>/resourceGroups/rg-kv-prod/providers/Microsoft.KeyVault/vaults/prod-kv/keys/prod-key"
+key_vault_resource_id = "/subscriptions/<SUB>/resourceGroups/rg-kv-prod/providers/Microsoft.KeyVault/vaults/prod-kv"
+location               = "centralus"
+name                   = "des-prod-001"
+resource_group_name    = "rg-des-prod"
+auto_key_rotation_enabled = true
+enable_telemetry          = true
+encryption_type           = "EncryptionAtRestWithCustomerKey"
+# federated_client_id may be a managed identity or service principal object id that needs access to the key
+federated_client_id      = null
+managed_hsm_key_id       = null
+lock = {
+  kind = "CanNotDelete"
+  name = "lock-des-prod-001"
+}
 
 tags = {
   environment = "prod"
-  owner       = "cloudteam"
+  project     = "disk-encryption"
+  owner       = "platform-team"
 }
