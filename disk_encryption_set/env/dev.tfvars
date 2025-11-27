@@ -1,37 +1,18 @@
-# ==========================================
-# ENCRYPTION TYPE OPTIONS
-# ==========================================
-# - PlatformManaged
-# - AzureKeyVault
-# - ManagedHSM
-# - KeyUri
-# ==========================================
+# dev.tfvars - example values for development
+key_vault_key_id      = "/subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/rg-kv-dev/providers/Microsoft.KeyVault/vaults/my-kv/keys/mykey"
+key_vault_resource_id = "/subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/rg-kv-dev/providers/Microsoft.KeyVault/vaults/my-kv"
+location               = "eastus"
+name                   = "des-dev-001"
+resource_group_name    = "rg-des-dev"
+auto_key_rotation_enabled = false
+enable_telemetry          = true
+encryption_type           = "EncryptionAtRestWithCustomerKey"
+federated_client_id      = null
+managed_hsm_key_id       = null
+lock                     = null
 
-des_name            = "dev-disk-encryption-set"
-subscription_id     = "DEV_SUBSCRIPTION_ID"
-resource_group_name = "dev-rg"
-location            = "East US"
-
-# Basic: Platform managed
-encryption_type = "PlatformManaged"
-
-# Azure Key Vault
-keyvault_uri          = null
-keyvault_key_name     = null
-keyvault_key_version  = null
-auto_key_rotation     = false
-
-# Managed HSM
-managed_hsm_uri  = null
-mhsm_key_name    = null
-mhsm_key_version = null
-
-# Key URI
-key_uri = null
-
-# Identity not needed for PMK
-user_assigned_identity_ids = []
-
+# tags can be provided as a map
 tags = {
   environment = "dev"
+  project     = "disk-encryption"
 }
